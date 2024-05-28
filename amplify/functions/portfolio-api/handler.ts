@@ -3,17 +3,6 @@ import type {
   APIGatewayProxyEventV2,
 } from "aws-lambda";
 
-const handleGetItems = async () => {
-  // Logic for handling GET /items
-  return {
-    statusCode: 200,
-    body: JSON.stringify([
-      { id: 1, name: "Item 1" },
-      { id: 2, name: "Item 2" },
-    ]),
-  };
-};
-
 const handleGetTodos = async () => {
   // Logic for handling GET /todos
   return {
@@ -38,11 +27,6 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
   if (event.requestContext.http.method === "GET") {
     switch (path) {
-      case "/items":
-        return {
-          ...(await handleGetItems()),
-          headers,
-        };
       case "/todos":
         return {
           ...(await handleGetTodos()),

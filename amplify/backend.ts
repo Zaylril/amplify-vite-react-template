@@ -12,6 +12,7 @@ import {
 import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 import { Policy, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { myApiFunction } from "./functions/portfolio-api/resource";
+import { myApiFunctionSecond } from "./functions/portfolio-api-second/resource";
 import { auth } from "./auth/resource";
 import { data } from "./data/resource";
 
@@ -19,9 +20,10 @@ const backend = defineBackend({
   auth,
   data,
   myApiFunction,
+  myApiFunctionSecond,
 });
 
-// create a new API stack
+// create a new API stack!
 const apiStack = backend.createStack("api-stack");
 
 // create a IAM authorizer
@@ -42,10 +44,16 @@ const httpLambdaIntegration = new HttpLambdaIntegration(
   backend.myApiFunction.resources.lambda
 );
 
+// create a new HTTP Lambda integration (second one diff lambda)
+const httpLambdaIntegrationSecond = new HttpLambdaIntegration(
+  "LambdaIntegration",
+  backend.myApiFunctionSecond.resources.lambda
+);
+
 // create a new HTTP API with IAM as default authorizer
 const httpApi = new HttpApi(apiStack, "HttpApi", {
   apiName: "myHttpApi",
-  defaultAuthorizer: iamAuthorizer,
+  defaultAuthorizer: userPoolAuthorizer,
   corsPreflight: {
     // Modify the CORS settings below to match your specific requirements
     allowMethods: [
@@ -66,22 +74,20 @@ const httpApi = new HttpApi(apiStack, "HttpApi", {
 httpApi.addRoutes({
   path: "/items",
   methods: [HttpMethod.GET, HttpMethod.PUT, HttpMethod.POST, HttpMethod.DELETE],
-  integration: httpLambdaIntegration,
-  authorizer: userPoolAuthorizer,
+  integration: httpLambdaIntegrationSecond,
 });
 
 httpApi.addRoutes({
   path: "/todos",
   methods: [HttpMethod.GET, HttpMethod.PUT, HttpMethod.POST, HttpMethod.DELETE],
   integration: httpLambdaIntegration,
-  authorizer: userPoolAuthorizer,
 });
 
 // add a proxy resource path to the API
 httpApi.addRoutes({
   path: "/items/{proxy+}",
   methods: [HttpMethod.OPTIONS, HttpMethod.ANY],
-  integration: httpLambdaIntegration,
+  integration: httpLambdaIntegrationSecond,
 });
 
 // add route to the API with a User Pool authorizer
@@ -89,25 +95,7 @@ httpApi.addRoutes({
   path: "/cognito-auth-path",
   methods: [HttpMethod.GET],
   integration: httpLambdaIntegration,
-  authorizer: userPoolAuthorizer,
 });
-
-// create a new IAM policy to allow Invoke access to the API
-const apiPolicy = new Policy(apiStack, "ApiPolicy", {
-  statements: [
-    new PolicyStatement({
-      actions: ["execute-api:Invoke"],
-      resources: [
-        `${httpApi.arnForExecuteApi("items")}`,
-        `${httpApi.arnForExecuteApi("cognito-auth-path")}`,
-      ],
-    }),
-  ],
-});
-
-// attach the policy to the authenticated and unauthenticated IAM roles
-backend.auth.resources.authenticatedUserIamRole.attachInlinePolicy(apiPolicy);
-backend.auth.resources.unauthenticatedUserIamRole.attachInlinePolicy(apiPolicy);
 
 // add outputs to the configuration file
 backend.addOutput({
