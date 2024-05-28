@@ -7,13 +7,15 @@ import outputs from "../amplify_outputs.json";
 import { fetchAuthSession } from 'aws-amplify/auth';
 
 const session = await fetchAuthSession();
-const authToken = session.tokens?.idToken
+const token = session.tokens?.idToken
 
 Amplify.configure(outputs, {
   API: {
     REST: {
       headers: async () => {
-        return { Authorization: authToken };
+        const session: any = await fetchAuthSession();
+        const token: any = session.tokens?.idToken;
+        return { Authorization: token };
       }
     }
   }
