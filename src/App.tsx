@@ -8,6 +8,7 @@ import '@aws-amplify/ui-react/styles.css';
 
 const client = generateClient<Schema>();
 
+
 function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
 
