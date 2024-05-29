@@ -5,6 +5,9 @@ import "./index.css";
 import { Amplify } from "aws-amplify";
 import outputs from "../amplify_outputs.json";
 import { fetchAuthSession } from 'aws-amplify/auth';
+//import { secret } from '@aws-amplify/backend';
+
+// console.log(secret("FMP_API_KEY"));
 
 Amplify.configure(outputs, {
   API: {

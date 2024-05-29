@@ -1,4 +1,5 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { myApiFunction } from "../functions/portfolio-api/resource";
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -64,7 +65,7 @@ const schema = a.schema({
         entry: "./getPost.js",
       })
     ),
-});
+}).authorization(allow => [allow.resource(myApiFunction)]);;
 
 export type Schema = ClientSchema<typeof schema>;
 
