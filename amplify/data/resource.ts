@@ -11,6 +11,7 @@ const schema = a.schema({
   Todo: a
     .model({
       content: a.string(),
+      owner: a.string().authorization(allow => [allow.owner().to(['read', 'delete'])]), //stops owners from reassigning
     })
     .authorization((allow) => [allow.owner()]),
   Stock: a.model({
@@ -20,11 +21,13 @@ const schema = a.schema({
     shares: a.integer().required(),
     portfolioId: a.id(),
     portfolio: a.belongsTo('Portfolio', 'portfolioId'),
+    owner: a.string().authorization(allow => [allow.owner().to(['read', 'delete'])]),
   })
     .authorization(allow => [allow.owner()]),
   Portfolio: a.model({
     name: a.string().required(),
     stocks: a.hasMany('Stock', 'portfolioId'),
+    owner: a.string().authorization(allow => [allow.owner().to(['read', 'delete'])]),
   })
     .authorization(allow => [allow.owner()]),
   Post: a.customType({
