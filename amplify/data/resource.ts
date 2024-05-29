@@ -10,7 +10,60 @@ const schema = a.schema({
   Todo: a
     .model({
       content: a.string(),
-    }).authorization(allow => [allow.owner()]),
+    })
+    .authorization((allow) => [allow.owner()]),
+  Stock: a.model({
+    ticker: a.string().required(),
+    averagePrice: a.integer().required(),
+    currency: a.string().required(),
+    shares: a.integer().required(),
+    portfolioId: a.id(),
+    portfolio: a.belongsTo('Portfolio', 'portfolioId'),
+  })
+    .authorization(allow => [allow.owner()]),
+  Portfolio: a.model({
+    name: a.string().required(),
+    stocks: a.hasMany('Stock', 'portfolioId'),
+  })
+    .authorization(allow => [allow.owner()]),
+  Post: a.customType({
+    id: a.id().required(),
+    author: a.string().required(),
+    title: a.string(),
+    content: a.string(),
+    url: a.string(),
+    ups: a.integer(),
+    downs: a.integer(),
+    version: a.integer(),
+  }),
+  addPost: a
+    .mutation()
+    .arguments({
+      id: a.id(),
+      author: a.string().required(),
+      title: a.string(),
+      content: a.string(),
+      url: a.string(),
+    })
+    .returns(a.ref("Post"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(
+      a.handler.custom({
+        dataSource: "ExternalPostTableDataSource",
+        entry: "./addPost.js",
+      })
+    ),
+  getPost: a
+    .query()
+    .arguments({ id: a.id().required() })
+    .returns(a.ref("Post"))
+    .authorization((allow) => [allow.authenticated()])
+    .handler(
+      a.handler.custom({
+        dataSource: "ExternalPostTableDataSource",
+        entry: "./getPost.js",
+      })
+    ),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -18,11 +71,11 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'userPool',
+    defaultAuthorizationMode: "userPool",
     // API Key is used for a.allow.public() rules
-    apiKeyAuthorizationMode: {
-      expiresInDays: 30,
-    },
+    // apiKeyAuthorizationMode: {
+    //   expiresInDays: 30,
+    // },
   },
 });
 

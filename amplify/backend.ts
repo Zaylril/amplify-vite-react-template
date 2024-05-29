@@ -1,5 +1,5 @@
 import { defineBackend } from "@aws-amplify/backend";
-import { Stack } from "aws-cdk-lib";
+import { Stack, aws_dynamodb } from "aws-cdk-lib";
 import {
   CorsHttpMethod,
   HttpApi,
@@ -23,10 +23,27 @@ const backend = defineBackend({
   myApiFunctionSecond,
 });
 
+
+const externalDataSourcesStack = backend.createStack("MyExternalDataSources");
+
+
+const externalTable = aws_dynamodb.Table.fromTableName(
+  externalDataSourcesStack,
+  "MyExternalPostTable",
+  "PostTable"
+);
+
+
+backend.data.addDynamoDbDataSource(
+  "ExternalPostTableDataSource",
+  externalTable
+);
+
 // create a new API stack!
 const apiStack = backend.createStack("api-stack");
 
-// create a IAM authorizer
+
+
 const iamAuthorizer = new HttpIamAuthorizer();
 
 // create a User Pool authorizer

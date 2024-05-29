@@ -15,16 +15,49 @@ function App() {
     client.models.Todo.observeQuery().subscribe({
       next: (data: { items: any }) => setTodos([...data.items]),
     });
+    // client.mutations.addPost({
+    //   title: "My Post",
+    //   content: "My Content",
+    //   author: "Richard",
+    // });
   }, []);
-
+  
   async function getItem() {
     try {
+
+      // const { data: team } = await client.models.Portfolio.create({
+      //   name: 'my First Portfolio',
+      // });
+
+      const { data: portfolios } = await client.models.Portfolio.list();
+      console.log(portfolios);
+
+      // const { data: stock } = await client.models.Stock.create({
+      //   ticker: "MSFT",
+      //   portfolioId: portfolios[0].id,
+      //   averagePrice: 20,
+      //   shares: 10,
+      //   currency: "GBP"
+      // });
+
+      // console.log(stock);
+
+      const { data: stocks } = await client.models.Stock.list({
+        filter: {
+          portfolioId: {
+            eq: portfolios[0].id
+          }
+        }
+      });
+      console.log(stocks);
+
       const restOperation = get({
         apiName: "myHttpApi",
         path: "todos",
       });
       const response = await restOperation.response;
       console.log("GET call succeeded: ", response);
+      
     } catch (error: any) {
       console.log("GET call failed: ", error);
     }
